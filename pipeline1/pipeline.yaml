@@ -25,7 +25,7 @@ spec:
       - name: flags
         value: --
       - name: argocd-server-address
-        value: localhost:8080
+        value: argocd-server.argocd.svc.cluster.local:8080
       - name: argocd-credentials-secret
         value:
           username: admin
