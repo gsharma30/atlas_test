@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: argocd-sync-and-wait
+  name: argocd-sync-and-wait-1
   annotations:
     workflows.argoproj.io/description: >-
       This task syncs (deploys) an Argo CD application and waits for it to be healthy.
