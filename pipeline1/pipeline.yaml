@@ -12,20 +12,25 @@ metadata:
     workflows.argoproj.io/tags: argocd
     workflows.argoproj.io/version: '>= 2.9.0'
 spec:
-  entrypoint: argocd-sync-and-wait
+  entrypoint: argocd-sync-and-wait-1
   templates:
-  - name: argocd-sync-and-wait
+  - name: argocd-sync-and-wait-1
     inputs:
       parameters:
       - name: argocd-version
         value: v1.6.0
       - name: application-name
+        value: argocd-sync-and-wait-1
       - name: revision
         value: HEAD
       - name: flags
         value: --
       - name: argocd-server-address
+        value: localhost:8080
       - name: argocd-credentials-secret
+        value:
+          username: admin
+          password: UZe0GeEZzKlKQwdL
     script:
       image: argoproj/argocd:{{inputs.parameters.argocd-version}}
       command: [bash]
