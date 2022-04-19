@@ -12,15 +12,15 @@ metadata:
     workflows.argoproj.io/tags: argocd
     workflows.argoproj.io/version: '>= 2.9.0'
 spec:
-  entrypoint: argocd-sync-and-wait-1
+  entrypoint: test
   templates:
-  - name: argocd-sync-and-wait-1
+  - name: test
     inputs:
       parameters:
       - name: argocd-version
         value: v1.6.0
       - name: application-name
-        value: argocd-sync-and-wait-1
+        value: helm-guestbook
       - name: revision
         value: HEAD
       - name: flags
