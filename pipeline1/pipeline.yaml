@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  name: test
+  name: argocd-sync-and-wait-1
   namespace: argo
   annotations:
     workflows.argoproj.io/description: >-
@@ -12,15 +12,15 @@ metadata:
     workflows.argoproj.io/tags: argocd
     workflows.argoproj.io/version: '>= 2.9.0'
 spec:
-  entrypoint: test
+  entrypoint: argocd-sync-and-wait-1
   templates:
-  - name: test
+  - name: argocd-sync-and-wait-1
     inputs:
       parameters:
       - name: argocd-version
         value: v1.6.0
       - name: application-name
-        value: helm-guestbook
+        value: argocd-sync-and-wait-1
       - name: revision
         value: HEAD
       - name: flags
@@ -28,13 +28,17 @@ spec:
       - name: argocd-server-address
         value: "http://192.168.64.7:30286"
       - name: argocd-credentials-secret
-        value:
-          username: admin
-          password: bmc1kSiRPhx7n3Gt
+        value: argocd-credentials-secret
     script:
       image: argoproj/argocd:{{inputs.parameters.argocd-version}}
       command: [bash]
       env:
+        - name: ARGOCD_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: "{{inputs.parameters.argocd-credentials-secret}}"
+              key: token
+              optional: true
         - name: ARGOCD_USERNAME
           valueFrom:
             secretKeyRef:
@@ -54,8 +58,14 @@ spec:
 
         set -euo pipefail
 
-        
-        argocd login "$ARGOCD_SERVER" --username=$ARGOCD_USERNAME --password=$ARGOCD_PASSWORD {{inputs.parameters.flags}}
+        if [[ -z $ARGOCD_AUTH_TOKEN ]] && [[ -z "$ARGOCD_USERNAME" || -z "$ARGOCD_PASSWORD" ]]; then
+          echo "Either the ARGOCD_AUTH_TOKEN must be specified, or the ARGOCD_USERNAME/ARGOCD_PASSWORD must be specified."
+          exit 1
+        fi 
+
+        if [ -z $ARGOCD_AUTH_TOKEN ]; then
+          yes | argocd login "$ARGOCD_SERVER" --username=$ARGOCD_USERNAME --password=$ARGOCD_PASSWORD {{inputs.parameters.flags}}
+        fi
 
         echo "Running as ArgoCD User:"
         argocd account get-user-info {{inputs.parameters.flags}}
