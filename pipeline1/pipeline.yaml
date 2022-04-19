@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  name: argocd-sync-and-wait-1000000
+  name: test
   namespace: argo
   annotations:
     workflows.argoproj.io/description: >-
