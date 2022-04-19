@@ -30,7 +30,7 @@ spec:
       - name: argocd-credentials-secret
         value:
           username: admin
-          password: bmc1kSiRPhx7n3Gt
+          password: "bmc1kSiRPhx7n3Gt"
     script:
       image: argoproj/argocd:{{inputs.parameters.argocd-version}}
       command: [bash]
