@@ -30,17 +30,11 @@ spec:
       - name: argocd-credentials-secret
         value:
           username: admin
-          password: "bmc1kSiRPhx7n3Gt"
+          password: bmc1kSiRPhx7n3Gt
     script:
       image: argoproj/argocd:{{inputs.parameters.argocd-version}}
       command: [bash]
       env:
-        - name: ARGOCD_AUTH_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: "{{inputs.parameters.argocd-credentials-secret}}"
-              key: token
-              optional: true
         - name: ARGOCD_USERNAME
           valueFrom:
             secretKeyRef:
@@ -60,14 +54,8 @@ spec:
 
         set -euo pipefail
 
-        if [[ -z $ARGOCD_AUTH_TOKEN ]] && [[ -z "$ARGOCD_USERNAME" || -z "$ARGOCD_PASSWORD" ]]; then
-          echo "Either the ARGOCD_AUTH_TOKEN must be specified, or the ARGOCD_USERNAME/ARGOCD_PASSWORD must be specified."
-          exit 1
-        fi 
-
-        if [ -z $ARGOCD_AUTH_TOKEN ]; then
-          yes | argocd login "$ARGOCD_SERVER" --username=$ARGOCD_USERNAME --password=$ARGOCD_PASSWORD {{inputs.parameters.flags}}
-        fi
+        
+        argocd login "$ARGOCD_SERVER" --username=$ARGOCD_USERNAME --password=$ARGOCD_PASSWORD {{inputs.parameters.flags}}
 
         echo "Running as ArgoCD User:"
         argocd account get-user-info {{inputs.parameters.flags}}
