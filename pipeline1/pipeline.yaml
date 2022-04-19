@@ -36,17 +36,17 @@ spec:
         - name: ARGOCD_USERNAME
           valueFrom:
             secretKeyRef:
-              name: "{{inputs.parameters.argocd-credentials-secret}}"
+              name: {{inputs.parameters.argocd-credentials-secret}}
               key: username
               optional: true
         - name: ARGOCD_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: "{{inputs.parameters.argocd-credentials-secret}}"
+              name: {{inputs.parameters.argocd-credentials-secret}}
               key: password
               optional: true
         - name: ARGOCD_SERVER
-          value: "{{inputs.parameters.argocd-server-address}}"
+          value: {{inputs.parameters.argocd-server-address}}
       source: |
         #!/bin/bash
 
