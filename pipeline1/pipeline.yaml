@@ -25,7 +25,7 @@ spec:
       - name: flags
         value: --
       - name: argocd-server-address
-        value: http://192.168.64.7:30286
+        value: "http://192.168.64.7:30286"
       - name: argocd-credentials-secret
         value:
           username: admin
