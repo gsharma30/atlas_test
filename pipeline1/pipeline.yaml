@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
   name: argocd-sync-and-wait-1
-  namespace: argo
+  namespace: demo
   annotations:
     workflows.argoproj.io/description: >-
       This task syncs (deploys) an Argo CD application and waits for it to be healthy.
@@ -20,7 +20,7 @@ spec:
       - name: argocd-version
         value: v1.6.0
       - name: application-name
-        value: argocd-sync-and-wait-1
+        value: guestbook
       - name: revision
         value: HEAD
       - name: flags
