@@ -2,7 +2,9 @@ parameters:
     - name: argocd-version
       value: v1.6.0
     - name: application-name
-      value: guestbook1
+      value: pipeline1-app1
+    - name: application-name-2
+      value: pipeline1-app2
     - name: revision
       value: HEAD
     - name: flags
