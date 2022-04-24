@@ -21,6 +21,16 @@ spec:
         template: whalesay
       - name: first-deploy-step
         dependencies: [first-dummy-step]
+        arguments:
+          parameters:
+          - name: application-name
+            value: "{{workflow.parameters.application-name}}"
+          - name: argocd-server-address
+            value: "{{workflow.parameters.argocd-server-address}}"
+          - name: argocd-credentials-secret
+            value: "{{workflow.parameters.argocd-credentials-secret}}"
+      - name: template-param-1
+        value: abcd
         template: argocd-sync-and-wait-1
       - name: second-dummy-step
         dependencies: [first-deploy-step]
@@ -28,6 +38,15 @@ spec:
       - name: second-deploy-step
         dependencies: [second-dummy-step]
         template: argocd-sync-and-wait-2
+        arguments:
+          parameters:
+          - name: application-name-2
+            value: "{{workflow.parameters.application-name-2}}"
+          - name: argocd-server-address
+            value: "{{workflow.parameters.argocd-server-address}}"
+          - name: argocd-credentials-secret
+            value: "{{workflow.parameters.argocd-credentials-secret}}"
+        
   - name: whalesay            # Defining the "whalesay" template
     container:
       image: docker/whalesay
