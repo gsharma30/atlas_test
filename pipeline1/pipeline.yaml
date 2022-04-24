@@ -21,6 +21,7 @@ spec:
         template: whalesay
       - name: first-deploy-step
         dependencies: [first-dummy-step]
+        template: argocd-sync-and-wait-1
         arguments:
           parameters:
           - name: application-name
@@ -29,9 +30,6 @@ spec:
             value: "{{workflow.parameters.argocd-server-address}}"
           - name: argocd-credentials-secret
             value: "{{workflow.parameters.argocd-credentials-secret}}"
-      - name: template-param-1
-        value: abcd
-        template: argocd-sync-and-wait-1
       - name: second-dummy-step
         dependencies: [first-deploy-step]
         template: whalesay
