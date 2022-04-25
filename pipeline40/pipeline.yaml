@@ -1,0 +1,163 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: pipeline40
+  annotations:
+    workflows.argoproj.io/description: >-
+      This task syncs (deploys) an Argo CD application and waits for it to be healthy.
+
+      To do so, it requires the address of the Argo CD server and some form of
+      authentication either a username/password or an authentication token.
+    workflows.argoproj.io/maintainer: '@dcherman'
+    workflows.argoproj.io/tags: argocd
+    workflows.argoproj.io/version: '>= 2.9.0'
+spec:
+  entrypoint: start-pipeline
+  templates:
+  - name: start-pipeline
+    dag:
+      tasks:
+      - name: first-dummy-step
+        template: whalesay
+      - name: first-deploy-step
+        dependencies: [first-dummy-step]
+        template: argocd-sync-and-wait-1
+        arguments:
+          parameters:
+          - name: application-name
+            value: '{{workflow.parameters.application-name}}'
+          - name: argocd-server-address
+            value: '{{workflow.parameters.argocd-server-address}}'
+          - name: argocd-credentials-secret
+            value: '{{workflow.parameters.argocd-credentials-secret}}'
+      - name: second-dummy-step
+        dependencies: [first-deploy-step]
+        template: whalesay
+      - name: second-deploy-step
+        dependencies: [second-dummy-step]
+        template: argocd-sync-and-wait-2
+        arguments:
+          parameters:
+          - name: application-name-2
+            value: '{{workflow.parameters.application-name-2}}'
+          - name: argocd-server-address
+            value: '{{workflow.parameters.argocd-server-address}}'
+          - name: argocd-credentials-secret
+            value: '{{workflow.parameters.argocd-credentials-secret}}'
+  - name: whalesay            # Defining the "whalesay" template
+    container:
+      image: docker/whalesay
+      command: [cowsay]
+      args: [hello world]     # This template runs "cowsay" in the "whalesay" image with arguments "hello world"
+  - name: argocd-sync-and-wait-1
+    inputs:
+      parameters:
+      - name: argocd-version
+        value: v1.6.0
+      - name: application-name
+      - name: revision
+        value: HEAD
+      - name: flags
+        value: --
+      - name: argocd-server-address
+      - name: argocd-credentials-secret
+    script:
+      image: argoproj/argocd:{{inputs.parameters.argocd-version}}
+      command: [bash]
+      env:
+      - name: ARGOCD_AUTH_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: '{{inputs.parameters.argocd-credentials-secret}}'
+            key: token
+            optional: true
+      - name: ARGOCD_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: '{{inputs.parameters.argocd-credentials-secret}}'
+            key: username
+            optional: true
+      - name: ARGOCD_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: '{{inputs.parameters.argocd-credentials-secret}}'
+            key: password
+            optional: true
+      - name: ARGOCD_SERVER
+        value: '{{inputs.parameters.argocd-server-address}}'
+      source: |
+        #!/bin/bash
+
+        set -euo pipefail
+
+        if [[ -z $ARGOCD_AUTH_TOKEN ]] && [[ -z "$ARGOCD_USERNAME" || -z "$ARGOCD_PASSWORD" ]]; then
+          echo "Either the ARGOCD_AUTH_TOKEN must be specified, or the ARGOCD_USERNAME/ARGOCD_PASSWORD must be specified."
+          exit 1
+        fi 
+
+        if [ -z $ARGOCD_AUTH_TOKEN ]; then
+          yes | argocd login "$ARGOCD_SERVER" --username=$ARGOCD_USERNAME --password=$ARGOCD_PASSWORD {{inputs.parameters.flags}} || echo ${PIPESTATUS[@]}
+        fi
+
+        echo "Running as ArgoCD User:"
+        argocd account get-user-info {{inputs.parameters.flags}}
+
+        argocd app sync {{inputs.parameters.application-name}} --revision {{inputs.parameters.revision}} {{inputs.parameters.flags}}
+        argocd app wait {{inputs.parameters.application-name}} --health {{inputs.parameters.flags}}
+
+  - name: argocd-sync-and-wait-2
+    inputs:
+      parameters:
+      - name: argocd-version
+        value: v1.6.0
+      - name: application-name-2
+      - name: revision
+        value: HEAD
+      - name: flags
+        value: --
+      - name: argocd-server-address
+      - name: argocd-credentials-secret
+    script:
+      image: argoproj/argocd:{{inputs.parameters.argocd-version}}
+      command: [bash]
+      env:
+      - name: ARGOCD_AUTH_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: '{{inputs.parameters.argocd-credentials-secret}}'
+            key: token
+            optional: true
+      - name: ARGOCD_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: '{{inputs.parameters.argocd-credentials-secret}}'
+            key: username
+            optional: true
+      - name: ARGOCD_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: '{{inputs.parameters.argocd-credentials-secret}}'
+            key: password
+            optional: true
+      - name: ARGOCD_SERVER
+        value: '{{inputs.parameters.argocd-server-address}}'
+      source: |
+        #!/bin/bash
+
+        set -euo pipefail
+
+        if [[ -z $ARGOCD_AUTH_TOKEN ]] && [[ -z "$ARGOCD_USERNAME" || -z "$ARGOCD_PASSWORD" ]]; then
+          echo "Either the ARGOCD_AUTH_TOKEN must be specified, or the ARGOCD_USERNAME/ARGOCD_PASSWORD must be specified."
+          exit 1
+        fi 
+
+        if [ -z $ARGOCD_AUTH_TOKEN ]; then
+          yes | argocd login "$ARGOCD_SERVER" --username=$ARGOCD_USERNAME --password=$ARGOCD_PASSWORD {{inputs.parameters.flags}} || echo ${PIPESTATUS[@]}
+        fi
+
+        echo "Running as ArgoCD User:"
+        argocd account get-user-info {{inputs.parameters.flags}}
+
+        argocd app sync {{inputs.parameters.application-name-2}} --revision {{inputs.parameters.revision}} {{inputs.parameters.flags}}
+        argocd app wait {{inputs.parameters.application-name-2}} --health {{inputs.parameters.flags}}
+
